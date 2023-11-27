@@ -41,7 +41,13 @@ Welcome to the Memo Test back-end project! This backend for a memo test game usi
     docker exec -it api-memo-test-app php artisan db:seed --class=MemoTestImageSeeder
 
 
-Now, the backend is ready to be used with the frontend! Feel free to integrate it with the frontend to create an engaging Memo test game [https://github.com/diegomottadev/memo-test]. If you encounter any issues, make sure Docker is installed, and the necessary commands are executed in the correct order.
+
+
+## Now, the backend is ready to be used with the frontend!
+
+Check http://localhost:82
+
+Feel free to integrate it with the frontend to create an engaging Memo test game [https://github.com/diegomottadev/memo-test]. If you encounter any issues, make sure Docker is installed, and the necessary commands are executed in the correct order.
 
 
 
