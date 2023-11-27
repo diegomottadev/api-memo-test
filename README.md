@@ -21,23 +21,23 @@ Docker and Docker Compose installed
 
 ## Set Permissions and Configuration:
 
-docker exec -it api-memo-test-app chmod -R 775 storage
-docker exec -it api-memo-test-app chown -R www-data:www-data storage
-docker exec -it api-memo-test-app php artisan vendor:publish --tag=lighthouse-schema
-docker exec -it api-memo-test-app php artisan route:clear
-docker exec -it api-memo-test-app php artisan config:clear
-docker exec -it api-memo-test-app php artisan cache:clear
-docker cp .env api-memo-test-app:/var/www/api-memo-test/.env
+    docker exec -it api-memo-test-app chmod -R 775 storage
+    docker exec -it api-memo-test-app chown -R www-data:www-data storage
+    docker exec -it api-memo-test-app php artisan vendor:publish --tag=lighthouse-schema
+    docker exec -it api-memo-test-app php artisan route:clear
+    docker exec -it api-memo-test-app php artisan config:clear
+    docker exec -it api-memo-test-app php artisan cache:clear
+    docker cp .env api-memo-test-app:/var/www/api-memo-test/.env
 
 
 ## Run Migrations:
 
-docker exec -it api-memo-test-app php artisan migrate
+    docker exec -it api-memo-test-app php artisan migrate
 
 ## Run Seeders:
 
-docker exec -it api-memo-test-app php artisan db:seed --class=MemoTestSeeder
-docker exec -it api-memo-test-app php artisan db:seed --class=MemoTestImageSeeder
+    docker exec -it api-memo-test-app php artisan db:seed --class=MemoTestSeeder
+    docker exec -it api-memo-test-app php artisan db:seed --class=MemoTestImageSeeder
 
 
 Now, the backend is ready to be used with the frontend! Feel free to integrate it with the frontend to create an engaging Memo test game [https://github.com/diegomottadev/memo-test]. If you encounter any issues, make sure Docker is installed, and the necessary commands are executed in the correct order.
