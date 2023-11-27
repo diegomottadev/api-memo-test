@@ -1,7 +1,8 @@
 Welcome to the Memo Test back-end project! This backend for a memo test game using Laravel, GraphQL API, MySQL, and Docker. This server-side application handles game logic, data storage, and communication with the frontend, providing a seamless experience for players. The use of Laravel ensures a robust and scalable backend, GraphQL facilitates efficient data retrieval, MySQL serves as the database, and Docker simplifies deployment and management of the entire system.
 
 ## Prerequisites
-Docker and Docker Compose installed
+
+    Docker and Docker Compose installed
 
 ## Download repository:
 
@@ -11,7 +12,7 @@ Docker and Docker Compose installed
 
     cd api-memo-test
 
-## Run Docker Compose:
+## Run docker compose:
 
     docker-compose up -d
 
@@ -19,8 +20,8 @@ Docker and Docker Compose installed
 
     ...
 
-## Set Permissions and Configuration:
-
+## Run composer install, set permissions and configuration:
+    docker exec -it api-memo-test-app chmod -R 775 storage
     docker exec -it api-memo-test-app chmod -R 775 storage
     docker exec -it api-memo-test-app chown -R www-data:www-data storage
     docker exec -it api-memo-test-app php artisan vendor:publish --tag=lighthouse-schema
@@ -30,11 +31,11 @@ Docker and Docker Compose installed
     docker cp .env api-memo-test-app:/var/www/api-memo-test/.env
 
 
-## Run Migrations:
+## Run migrations:
 
     docker exec -it api-memo-test-app php artisan migrate
 
-## Run Seeders:
+## Run seeders:
 
     docker exec -it api-memo-test-app php artisan db:seed --class=MemoTestSeeder
     docker exec -it api-memo-test-app php artisan db:seed --class=MemoTestImageSeeder
