@@ -21,7 +21,8 @@ Welcome to the Memo Test back-end project! This backend for a memo test game usi
     ...
 
 ## Run composer install, set permissions and configuration:
-    docker exec -it api-memo-test-app chmod -R 775 storage
+
+    docker exec -it api-memo-test-app composer install
     docker exec -it api-memo-test-app chmod -R 775 storage
     docker exec -it api-memo-test-app chown -R www-data:www-data storage
     docker exec -it api-memo-test-app php artisan vendor:publish --tag=lighthouse-schema
