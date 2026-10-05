@@ -7,12 +7,18 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Seed the sample memo tests and their images.
+     *
+     * Both seeders can run many times without creating duplicates, so the
+     * Docker entrypoint runs `php artisan db:seed` on every start.
      *
      * @return void
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
+        $this->call([
+            MemoTestSeeder::class,
+            MemoTestImageSeeder::class,
+        ]);
     }
 }
