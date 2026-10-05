@@ -100,11 +100,10 @@ type Mutation {
   createGameSession(memo_test_id: ID!, retries: Int!, number_of_pairs: Int!, state: SessionState!): GameSession
   updateGameSessionCard(id: ID!, retries: Int!, number_of_pairs: Int!): GameSession
   updateGameSession(id: ID!, score: Int!): GameSession
-  createMemoTest(name: String!, images: [String!]!): MemoTest
-  updateMemoTest(id: ID!, imagesToAdd: [String!], imagesToRemove: [String!]): MemoTest
-  deleteMemoTest(id: ID!): ID
 }
 ```
+
+El schema también declara `createMemoTest`, `updateMemoTest`, `deleteMemoTest` y `endGameSession`, pero **no tienen implementación**: responden "Could not locate a field resolver". Están en el checklist de pendientes.
 
 Schema completo: `graphql/schema.graphql`. CORS permite cualquier origen en `/graphql`.
 
@@ -118,7 +117,36 @@ Schema completo: `graphql/schema.graphql`. CORS permite cualquier origen en `/gr
 
 ## Limitaciones conocidas
 
-- `endGameSession` está en el schema pero no tiene implementación (responde "Could not locate a field resolver"); las sesiones quedan en estado `Started`.
+- `endGameSession`, `createMemoTest`, `updateMemoTest` y `deleteMemoTest` están en el schema pero no tienen implementación; las sesiones quedan en estado `Started`.
 - `scoreMax` incluye sesiones sin terminar (puntaje 0).
 - Las imágenes de ejemplo son links a sitios externos.
 - Laravel 8 y PHP 8.1 ya no tienen soporte oficial; actualizar requiere migrar el proyecto a una versión nueva de Laravel.
+
+## Pendiente: checklist para seguir aprendiendo
+
+Tareas ordenadas por dificultad para quien retome el proyecto. Cada una dice dónde mirar y qué se practica. Probá cada cambio con GraphiQL (http://localhost:82/graphiql) y, cuando existan, con tests.
+
+### Nivel inicial
+
+- [ ] **Implementar `endGameSession`** para marcar la sesión como `Completed`. Dónde: `graphql/schema.graphql` (con una directiva como `@update`, o una clase en `app/GraphQL/Mutations` creada con `php artisan lighthouse:mutation EndGameSession`). Practicás: resolvers de Lighthouse.
+- [ ] **Implementar `createMemoTest`, `updateMemoTest` y `deleteMemoTest`.** Dónde: igual que el anterior; `createMemoTest` recibe URLs de imágenes y tiene que crear las filas de `memo_test_images`. Practicás: mutations con relaciones.
+- [ ] **Validar los datos de las mutations** (puntaje de 0 a 100, intentos y pares no negativos). Dónde: directivas `@rules` en el schema. Practicás: validación en GraphQL.
+- [ ] **Hacer que `scoreMax` ignore las partidas sin terminar.** Dónde: relación `scoreMax()` en `app/Models/MemoTest.php`. Practicás: relaciones de Eloquent con condiciones.
+- [ ] **Sacar `.env` del repositorio** (está versionado y tiene una `APP_KEY`) y dejar solo `.env.example`; el arranque de Docker ya lo crea si falta. Practicás: manejo de secretos.
+
+### Nivel intermedio
+
+- [ ] **Tests de la API** con PHPUnit y `MakesGraphQLRequests` de Lighthouse (hoy solo están los `ExampleTest`). Dónde: `tests/Feature`. Practicás: tests de integración con base de datos.
+- [ ] **Agregar una descripción a cada imagen** (migración, schema y seeder) para que el frontend la use como texto alternativo en lugar de "Picture 1". Practicás: migraciones y cambios de schema sin romper el cliente.
+- [ ] **Guardar las imágenes en el proyecto** (`storage/app/public` + `php artisan storage:link`) en lugar de links a sitios externos que se pueden caer. Practicás: archivos en Laravel.
+- [ ] **Ordenar la base:** la migración `add_score_to_memo_tests_table` en realidad modifica `game_sessions`, y la columna `user_selections` no se usa. Practicás: migraciones nuevas sin reescribir las viejas.
+- [ ] **Factories y datos de prueba** para `MemoTest` y `GameSession` con Faker. Dónde: `database/factories`. Practicás: datos para tests.
+- [ ] **CI con GitHub Actions:** levantar MySQL como servicio y correr migraciones y tests en cada Pull Request. Practicás: automatización.
+
+### Nivel avanzado
+
+- [ ] **Actualizar a una versión de Laravel y PHP con soporte** (Laravel 8 y PHP 8.1 ya no tienen), junto con Lighthouse 6. Practicás: actualizaciones mayores paso a paso.
+- [ ] **Usuarios y ranking** con Sanctum (ya está instalado). Practicás: autenticación en una API GraphQL.
+- [ ] **Imagen de producción** (multi-stage, código copiado en la imagen, OPcache, sin bind mount) y deploy con HTTPS (por ejemplo Render, Fly.io o Railway), para que la demo de GitHub Pages use datos reales. Practicás: Docker para producción.
+- [ ] **Seguridad para producción:** CORS limitado al dominio del frontend, límite de pedidos por minuto y `APP_DEBUG=false`. Practicás: endurecer una API pública.
+
