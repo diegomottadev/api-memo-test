@@ -1,53 +1,81 @@
-
-version: "3.9"
+# Memo Test API: `docker compose up -d` builds and prepares everything.
+# GraphQL endpoint: http://localhost:82/graphql (GraphiQL: http://localhost:82/graphiql)
 services:
-    app:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        container_name: api-memo-test-app
-        restart: unless-stopped
-        tty: true
-        working_dir: /var/www/api-memo-test
-        volumes:
-            - .:/var/www/api-memo-test
-        networks:
-            - app-network
-    nginx:
-        image: nginx:latest
-        restart: unless-stopped
-        container_name: api-memo-test-nginx
-        tty: true
-        ports:
-            - "82:80"
-        volumes:
-            - .:/var/www/api-memo-test
-            - ./_docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-        networks:
-            - app-network
-    mysql:
-        image: mysql:5.7.22
-        #image: mariadb:10.3
-        container_name: api-memo-test-mysql
-        restart: unless-stopped
-        tty: true
-        ports:
-            - "3308:3306"
-        environment:
-            MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: memotest
-            MYSQL_USER: root
-            MYSQL_PASSWORD: root
-            SERVICE_TAGS: dev
-            SERVICE_NAME: mysql
-        volumes:
-            - dbdata:/var/lib/mysql/
-#            - ./mysql/my.cnf:/etc/mysql/my.cnf
-        networks:
-            - app-network
+  app:
+    build:
+      context: .
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    container_name: api-memo-test-app
+    restart: unless-stopped
+    # Real environment variables win over .env in Laravel, so the database
+    # settings are always right inside Docker, whatever .env says.
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: memotest
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      APP_PORT: ${APP_PORT:-82}
+    volumes:
+      - .:/var/www/api-memo-test
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      # php-fpm only starts after the entrypoint finished (deps, migrations, seeds).
+      test: ['CMD-SHELL', 'pgrep -f "php-fpm: master" > /dev/null']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      # The first start runs `composer install`, which can take a few minutes.
+      start_period: 300s
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: api-memo-test-nginx
+    restart: unless-stopped
+    ports:
+      - '${APP_PORT:-82}:80'
+    volumes:
+      - .:/var/www/api-memo-test
+      - ./_docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  mysql:
+    # mysql:8.0 has images for amd64 and arm64 (Apple Silicon); 5.7 was amd64 only.
+    image: mysql:8.0
+    container_name: api-memo-test-mysql
+    restart: unless-stopped
+    ports:
+      - '${DB_HOST_PORT:-3308}:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: memotest
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      # TCP ping: it only works when MySQL finished its first-time setup.
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uroot -proot --silent']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+    networks:
+      - app-network
+
 networks:
-    app-network:
-        driver: bridge
+  app-network:
+    driver: bridge
+
 volumes:
-    dbdata:
-        driver: local
+  # New name: the old `dbdata` volume (MySQL 5.7) is left untouched.
+  mysql-data:
